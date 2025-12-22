@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: bucket-service-api
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/
+      - DB_NAME=bucket_service
+      - STORAGE_PATH=/app/storage
+    volumes:
+      - ./storage:/app/storage
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+    networks:
+      - bucket-network
+
+  mongodb:
+    image: mongo:7.0
+    container_name: bucket-service-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=bucket_service
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    restart: unless-stopped
+    networks:
+      - bucket-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
+
+networks:
+  bucket-network:
+    driver: bridge
+
