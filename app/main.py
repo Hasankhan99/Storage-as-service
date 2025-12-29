@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Form
 from fastapi.responses import FileResponse as fastapi_file_response, HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
 from bson import ObjectId
@@ -18,6 +19,15 @@ from app.auth import (
 )
 
 app = FastAPI(title="Bucket as a Service", version="2.0.0")
+
+# Configure CORS - Allow all origins
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=False,  # Must be False when allow_origins=["*"]
+    allow_methods=["*"],  # Allow all methods (GET, POST, PUT, DELETE, etc.)
+    allow_headers=["*"],  # Allow all headers
+)
 
 # Configuration
 STORAGE_PATH = os.getenv("STORAGE_PATH", "/app/storage")

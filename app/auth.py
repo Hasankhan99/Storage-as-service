@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
-import bcrypt
+from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from pymongo import MongoClient
@@ -13,6 +13,9 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 STORAGE_LIMIT_GB = 1
 STORAGE_LIMIT_BYTES = STORAGE_LIMIT_GB * 1024 * 1024 * 1024  # 1GB in bytes
+
+# Password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
@@ -31,24 +34,12 @@ users_collection.create_index("email", unique=True)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash"""
-    try:
-        # Handle both string and bytes
-        if isinstance(hashed_password, str):
-            hashed_password = hashed_password.encode('utf-8')
-        if isinstance(plain_password, str):
-            plain_password = plain_password.encode('utf-8')
-        return bcrypt.checkpw(plain_password, hashed_password)
-    except Exception:
-        return False
+    return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
     """Hash a password"""
-    if isinstance(password, str):
-        password = password.encode('utf-8')
-    salt = bcrypt.gensalt()
-    hashed = bcrypt.hashpw(password, salt)
-    return hashed.decode('utf-8')
+    return pwd_context.hash(password)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):

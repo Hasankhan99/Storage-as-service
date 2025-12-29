@@ -1,5 +1,5 @@
-// API Base URL
-const API_BASE = 'http://localhost:8000/api';
+// API Base URL - Use relative path for production, or specify full URL for development
+const API_BASE = window.location.origin + '/api';
 
 // Token management
 let token = localStorage.getItem('admin_token');
